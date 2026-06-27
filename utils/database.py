@@ -1,6 +1,6 @@
 """
 utils/database.py
-SQLite-based storage for prediction history.
+SQLite-based prediction history for BreastScan AI.
 """
 
 import os
@@ -13,7 +13,6 @@ os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 
 
 def init_db():
-    """Create the predictions table if it doesn't exist."""
     conn = sqlite3.connect(DB_PATH)
     conn.execute("""
         CREATE TABLE IF NOT EXISTS predictions (
@@ -31,34 +30,26 @@ def init_db():
     conn.close()
 
 
-def save_prediction(patient: str, prediction: str, benign_prob: float,
-                    mal_prob: float, features: dict):
-    """Insert a single prediction record."""
-    init_db()
+def save_prediction(patient, prediction, benign_prob, mal_prob, features):
     import json
+    init_db()
     conn = sqlite3.connect(DB_PATH)
     conn.execute(
-        "INSERT INTO predictions (patient, prediction, benign_prob, mal_prob, risk_score, features, timestamp) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?)",
-        (
-            patient or "Anonymous",
-            prediction,
-            round(benign_prob, 4),
-            round(mal_prob, 4),
-            round(mal_prob, 4),
-            json.dumps({k: round(float(v), 4) for k, v in features.items()}),
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        )
+        "INSERT INTO predictions (patient,prediction,benign_prob,mal_prob,risk_score,features,timestamp) "
+        "VALUES (?,?,?,?,?,?,?)",
+        (patient or "Anonymous", prediction,
+         round(benign_prob,4), round(mal_prob,4), round(mal_prob,4),
+         json.dumps({k: round(float(v),4) for k,v in features.items()}),
+         datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     )
     conn.commit()
     conn.close()
 
 
-def get_history(limit: int = 100) -> pd.DataFrame:
-    """Retrieve the last `limit` prediction records."""
+def get_history(limit=200):
     init_db()
     conn = sqlite3.connect(DB_PATH)
-    df = pd.read_sql_query(
+    df   = pd.read_sql_query(
         f"SELECT * FROM predictions ORDER BY id DESC LIMIT {limit}", conn
     )
     conn.close()
@@ -66,7 +57,6 @@ def get_history(limit: int = 100) -> pd.DataFrame:
 
 
 def clear_history():
-    """Delete all records from the predictions table."""
     init_db()
     conn = sqlite3.connect(DB_PATH)
     conn.execute("DELETE FROM predictions")
@@ -74,16 +64,12 @@ def clear_history():
     conn.close()
 
 
-def get_stats() -> dict:
-    """Return high-level stats about stored predictions."""
+def get_stats():
     init_db()
     conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    cur.execute("SELECT COUNT(*) FROM predictions")
-    total = cur.fetchone()[0]
-    cur.execute("SELECT COUNT(*) FROM predictions WHERE prediction='Benign'")
-    benign = cur.fetchone()[0]
-    cur.execute("SELECT COUNT(*) FROM predictions WHERE prediction='Malignant'")
-    malignant = cur.fetchone()[0]
+    cur  = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM predictions"); total     = cur.fetchone()[0]
+    cur.execute("SELECT COUNT(*) FROM predictions WHERE prediction='Benign'"); benign = cur.fetchone()[0]
+    cur.execute("SELECT COUNT(*) FROM predictions WHERE prediction='Malignant'"); malignant = cur.fetchone()[0]
     conn.close()
     return {"total": total, "benign": benign, "malignant": malignant}

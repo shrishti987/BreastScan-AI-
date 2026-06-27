@@ -1,63 +1,44 @@
-# 🔬 BreastScan AI — Breast Cancer Prediction Web App
+# 🔬 BreastScan AI
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
-![Streamlit](https://img.shields.io/badge/Streamlit-1.32%2B-red)
-![License](https://img.shields.io/badge/License-MIT-green)
-![ML](https://img.shields.io/badge/ML-Ensemble%20(RF%2BGBM%2BLR)-purple)
+An AI-powered breast cancer prediction platform built with Python and Streamlit. Uses the Wisconsin Breast Cancer Dataset and a soft-voting ensemble model to deliver instant probabilistic assessments — plus epidemiological risk profiling and interactive data exploration.
 
-A full-featured, production-ready breast cancer prediction web application built with Python and Streamlit. Powered by an ensemble ML model achieving **~97–98% accuracy** on the Wisconsin Breast Cancer dataset.
+> ⚕️ **For educational and research purposes only. Not a substitute for medical advice.**
 
 ---
 
-## ✨ Features
+## Features
 
-| Feature | Description |
+| Page | Description |
 |---|---|
-| 🎛️ Interactive Sliders | Input all 30 tumor features via intuitive sliders |
-| 🟢🔴 Color-coded Results | Instant Benign/Malignant prediction with color feedback |
-| 📊 Risk Gauge | Real-time probability gauge chart |
-| 🔑 Feature Contributions | SHAP-inspired feature deviation chart |
-| 📁 Batch Prediction | Upload CSV → bulk predictions → download results |
-| 📄 PDF Reports | Exportable medical-style report per prediction |
-| 📜 History | SQLite-backed prediction history with export |
-| 📈 Analytics | Distributions, feature importance, correlation matrix |
-| 🤖 Auto-Train | Model trains automatically on first launch |
+| 🏠 Predict | Slide 30 tumor measurements → get instant Benign/Malignant prediction with risk gauge and PDF report |
+| 🧬 Risk Profiler | Gail Model–inspired 5-year & 10-year risk calculator using age, family history, BMI, HRT, BRCA status |
+| 🔭 Feature Explorer | 2D/3D scatter plots, decision boundary heatmap, pairwise scatter matrix |
+| 📊 Analytics | Feature distributions, importance ranking, correlation heatmap, ROC curve |
+| 🤖 Model Comparison | RF vs GBM vs Logistic Regression vs Ensemble — radar + bar charts with real scores |
+| 📁 Batch Predict | Upload CSV → predictions for multiple patients at once |
+| 📜 History | SQLite-backed prediction log with timeline chart and CSV export |
 
 ---
 
-## 🚀 Quick Start
-
-### 1. Clone / Download
+## Quickstart
 
 ```bash
-git clone https://github.com/your-username/breast-cancer-app.git
-cd breast-cancer-app
-```
+# 1. Clone and enter the project
+cd BreastScan-AI
 
-### 2. Create Virtual Environment
+# 2. Activate virtual environment
+# Windows:
+.\venv\Scripts\Activate.ps1
+# Mac/Linux:
+source venv/bin/activate
 
-```bash
-python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-```
-
-### 3. Install Dependencies
-
-```bash
+# 3. Install dependencies
 pip install -r requirements.txt
-```
 
-### 4. (Optional) Pre-train the Model
-
-```bash
+# 4. Train the model (once)
 python train_model.py
-```
 
-> The app will auto-train on first launch if models are missing.
-
-### 5. Launch the App
-
-```bash
+# 5. Run the app
 streamlit run app.py
 ```
 
@@ -65,78 +46,40 @@ Open **http://localhost:8501** in your browser.
 
 ---
 
-## 📁 Project Structure
+## ML Pipeline
+
+- **Dataset:** Wisconsin Breast Cancer Dataset — 569 samples, 30 features
+- **Model:** Soft-voting ensemble (Random Forest + Gradient Boosting + Logistic Regression)
+- **Preprocessing:** StandardScaler, stratified 80/20 train-test split
+- **Validation:** 5-fold cross-validation + ROC-AUC
+- **Accuracy:** ~97.4% | AUC ~0.993
+
+---
+
+## Project Structure
 
 ```
-breast_cancer_app/
-├── app.py                  # Main Streamlit application
+BreastScan-AI/
+├── app.py                  # Main Streamlit app
 ├── train_model.py          # Model training script
 ├── requirements.txt
-├── README.md
-├── utils/
-│   ├── __init__.py
-│   ├── helpers.py          # Prediction, export, validation utilities
-│   └── database.py         # SQLite prediction history
-├── models/                 # Auto-created on first run
-│   ├── model.pkl           # Trained ensemble model
-│   ├── scaler.pkl          # Feature scaler
-│   ├── metadata.pkl        # Feature stats & importances
-│   └── dataset.csv         # Training dataset
-└── data/
-    └── predictions.db      # SQLite history database
+├── models/                 # Saved model artifacts (auto-generated)
+├── data/                   # SQLite prediction history
+└── utils/
+    ├── helpers.py          # Prediction, PDF export, validation
+    ├── visuals.py          # SVG illustrations and HTML components
+    ├── database.py         # SQLite read/write
+    └── risk_profiler.py    # Epidemiological risk engine
 ```
 
 ---
 
-## 🤖 ML Model Details
+## Tech Stack
 
-- **Dataset**: [Wisconsin Breast Cancer Dataset](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_breast_cancer.html)
-  - 569 samples, 30 numeric features, 2 classes (Benign / Malignant)
-- **Preprocessing**: `StandardScaler` normalization
-- **Model**: Soft-Voting Ensemble
-  - Random Forest (200 trees) — weight 3
-  - Gradient Boosting (150 estimators) — weight 2
-  - Logistic Regression — weight 1
-- **Evaluation**: 80/20 train-test split + 5-fold cross-validation
-- **Typical Accuracy**: ~97–98% | **ROC-AUC**: ~0.99
+`Python` · `Streamlit` · `scikit-learn` · `Plotly` · `Pandas` · `NumPy` · `SQLite` · `ReportLab`
 
 ---
 
-## ☁️ Deployment
+## Disclaimer
 
-### Streamlit Cloud (Free)
-
-1. Push your repo to GitHub
-2. Go to [share.streamlit.io](https://share.streamlit.io)
-3. Connect repo → set `app.py` as entry point → Deploy
-
-### Render
-
-1. Create a new **Web Service** on [render.com](https://render.com)
-2. Build command: `pip install -r requirements.txt && python train_model.py`
-3. Start command: `streamlit run app.py --server.port $PORT --server.address 0.0.0.0`
-
-### Docker
-
-```dockerfile
-FROM python:3.11-slim
-WORKDIR /app
-COPY . .
-RUN pip install -r requirements.txt && python train_model.py
-EXPOSE 8501
-CMD ["streamlit", "run", "app.py", "--server.address=0.0.0.0"]
-```
-
----
-
-## ⚕️ Disclaimer
-
-> **This application is for educational and research purposes only.**  
-> It is NOT a substitute for professional medical diagnosis, advice, or treatment.  
-> Always consult a qualified healthcare professional for medical decisions.
-
----
-
-## 📄 License
-
-MIT License — feel free to use, modify, and distribute.
+This tool is intended for **educational and research purposes only**. It is not a substitute for professional medical diagnosis, advice, or treatment. Always consult a qualified healthcare provider.
